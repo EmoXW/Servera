@@ -1,0 +1,19 @@
+# Xcode
+DerivedData/
+DerivedDataDevice/
+build/
+*.xcuserstate
+xcuserdata/
+
+# macOS
+.DS_Store
+
+# Swift Package Manager
+.build/
+.swiftpm/
+
+# Logs
+*.log
+
+# Local secrets / exports
+*.serverabackup

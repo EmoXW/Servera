@@ -1,0 +1,596 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		01A000000000000000000101 /* ServeraApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A000000000000000000201 /* ServeraApp.swift */; };
+		01A000000000000000000102 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A000000000000000000202 /* RootView.swift */; };
+		01A000000000000000000103 /* ServeraTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A000000000000000000203 /* ServeraTheme.swift */; };
+		01A000000000000000000104 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A000000000000000000204 /* DashboardView.swift */; };
+		01A000000000000000000105 /* NASView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A000000000000000000205 /* NASView.swift */; };
+		01A000000000000000000106 /* DockerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A000000000000000000206 /* DockerView.swift */; };
+		01A000000000000000000107 /* DevicesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A000000000000000000207 /* DevicesView.swift */; };
+		01A000000000000000000108 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A000000000000000000208 /* SettingsView.swift */; };
+		01A00000000000000000010A /* ManagedDeviceRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A00000000000000000020A /* ManagedDeviceRecord.swift */; };
+		01A00000000000000000010B /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A00000000000000000020B /* KeychainService.swift */; };
+		01A00000000000000000010C /* BackupService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A00000000000000000020C /* BackupService.swift */; };
+		01A00000000000000000010D /* ServerStatusSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A00000000000000000020D /* ServerStatusSnapshot.swift */; };
+		01A00000000000000000010E /* SSHConnectionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A00000000000000000020E /* SSHConnectionService.swift */; };
+		01A00000000000000000010F /* Traversio in Frameworks */ = {isa = PBXBuildFile; productRef = 01A000000000000000000D02 /* Traversio */; };
+		01A000000000000000000110 /* ServerEditSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A00000000000000000020F /* ServerEditSheet.swift */; };
+		01A000000000000000000112 /* ServerTerminalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A000000000000000000211 /* ServerTerminalView.swift */; };
+		01A000000000000000000113 /* EdgeSwipeBack.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A000000000000000000212 /* EdgeSwipeBack.swift */; };
+		01A000000000000000000114 /* SynologyClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A000000000000000000213 /* SynologyClient.swift */; };
+		01A000000000000000000115 /* NASEditSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A000000000000000000214 /* NASEditSheet.swift */; };
+		01A000000000000000000116 /* SynologyFileService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A000000000000000000215 /* SynologyFileService.swift */; };
+		01A000000000000000000117 /* NASFileBrowserView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A000000000000000000216 /* NASFileBrowserView.swift */; };
+		01A000000000000000000118 /* SynologyDockerService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A000000000000000000217 /* SynologyDockerService.swift */; };
+		01A000000000000000000119 /* SynologyControlPanelService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A000000000000000000218 /* SynologyControlPanelService.swift */; };
+		01B000000000000000000101 /* ServerStatusParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01B000000000000000000201 /* ServerStatusParserTests.swift */; };
+		01B000000000000000000103 /* ServerTerminalTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01B000000000000000000203 /* ServerTerminalTests.swift */; };
+		01B000000000000000000104 /* SynologyClientParsingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01B000000000000000000204 /* SynologyClientParsingTests.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		01B000000000000000000A00 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 01A000000000000000000600 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 01A000000000000000000500;
+			remoteInfo = Servera;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		01A000000000000000000200 /* Servera.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Servera.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		01A000000000000000000201 /* ServeraApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServeraApp.swift; sourceTree = "<group>"; };
+		01A000000000000000000202 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		01A000000000000000000203 /* ServeraTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServeraTheme.swift; sourceTree = "<group>"; };
+		01A000000000000000000204 /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
+		01A000000000000000000205 /* NASView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NASView.swift; sourceTree = "<group>"; };
+		01A000000000000000000206 /* DockerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockerView.swift; sourceTree = "<group>"; };
+		01A000000000000000000207 /* DevicesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DevicesView.swift; sourceTree = "<group>"; };
+		01A000000000000000000208 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		01A000000000000000000209 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		01A00000000000000000020A /* ManagedDeviceRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManagedDeviceRecord.swift; sourceTree = "<group>"; };
+		01A00000000000000000020B /* KeychainService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainService.swift; sourceTree = "<group>"; };
+		01A00000000000000000020C /* BackupService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupService.swift; sourceTree = "<group>"; };
+		01A00000000000000000020D /* ServerStatusSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerStatusSnapshot.swift; sourceTree = "<group>"; };
+		01A00000000000000000020E /* SSHConnectionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SSHConnectionService.swift; sourceTree = "<group>"; };
+		01A00000000000000000020F /* ServerEditSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerEditSheet.swift; sourceTree = "<group>"; };
+		01A000000000000000000211 /* ServerTerminalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerTerminalView.swift; sourceTree = "<group>"; };
+		01A000000000000000000212 /* EdgeSwipeBack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EdgeSwipeBack.swift; sourceTree = "<group>"; };
+		01A000000000000000000213 /* SynologyClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SynologyClient.swift; sourceTree = "<group>"; };
+		01A000000000000000000214 /* NASEditSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NASEditSheet.swift; sourceTree = "<group>"; };
+		01A000000000000000000215 /* SynologyFileService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SynologyFileService.swift; sourceTree = "<group>"; };
+		01A000000000000000000216 /* NASFileBrowserView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NASFileBrowserView.swift; sourceTree = "<group>"; };
+		01A000000000000000000217 /* SynologyDockerService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SynologyDockerService.swift; sourceTree = "<group>"; };
+		01A000000000000000000218 /* SynologyControlPanelService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SynologyControlPanelService.swift; sourceTree = "<group>"; };
+		01B000000000000000000200 /* ServeraTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ServeraTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		01B000000000000000000201 /* ServerStatusParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerStatusParserTests.swift; sourceTree = "<group>"; };
+		01B000000000000000000203 /* ServerTerminalTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerTerminalTests.swift; sourceTree = "<group>"; };
+		01B000000000000000000204 /* SynologyClientParsingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SynologyClientParsingTests.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		01A000000000000000000300 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				01A00000000000000000010F /* Traversio in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		01B000000000000000000300 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		01A000000000000000000400 = {
+			isa = PBXGroup;
+			children = (
+				01A000000000000000000401 /* Servera */,
+				01B000000000000000000401 /* ServeraTests */,
+				01A000000000000000000402 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		01A000000000000000000401 /* Servera */ = {
+			isa = PBXGroup;
+			children = (
+				01A000000000000000000201 /* ServeraApp.swift */,
+				01A000000000000000000202 /* RootView.swift */,
+				01A000000000000000000203 /* ServeraTheme.swift */,
+				01A000000000000000000204 /* DashboardView.swift */,
+				01A000000000000000000205 /* NASView.swift */,
+				01A000000000000000000206 /* DockerView.swift */,
+				01A000000000000000000207 /* DevicesView.swift */,
+				01A000000000000000000208 /* SettingsView.swift */,
+				01A00000000000000000020A /* ManagedDeviceRecord.swift */,
+				01A00000000000000000020B /* KeychainService.swift */,
+				01A00000000000000000020C /* BackupService.swift */,
+				01A00000000000000000020D /* ServerStatusSnapshot.swift */,
+				01A00000000000000000020E /* SSHConnectionService.swift */,
+				01A00000000000000000020F /* ServerEditSheet.swift */,
+				01A000000000000000000211 /* ServerTerminalView.swift */,
+				01A000000000000000000212 /* EdgeSwipeBack.swift */,
+				01A000000000000000000213 /* SynologyClient.swift */,
+				01A000000000000000000214 /* NASEditSheet.swift */,
+				01A000000000000000000215 /* SynologyFileService.swift */,
+				01A000000000000000000216 /* NASFileBrowserView.swift */,
+				01A000000000000000000217 /* SynologyDockerService.swift */,
+				01A000000000000000000218 /* SynologyControlPanelService.swift */,
+				01A000000000000000000209 /* Assets.xcassets */,
+			);
+			path = Servera;
+			sourceTree = "<group>";
+		};
+		01A000000000000000000402 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				01A000000000000000000200 /* Servera.app */,
+				01B000000000000000000200 /* ServeraTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		01B000000000000000000401 /* ServeraTests */ = {
+			isa = PBXGroup;
+			children = (
+				01B000000000000000000201 /* ServerStatusParserTests.swift */,
+				01B000000000000000000203 /* ServerTerminalTests.swift */,
+				01B000000000000000000204 /* SynologyClientParsingTests.swift */,
+			);
+			path = ServeraTests;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		01A000000000000000000500 /* Servera */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 01A000000000000000000900 /* Build configuration list for PBXNativeTarget "Servera" */;
+			buildPhases = (
+				01A000000000000000000700 /* Sources */,
+				01A000000000000000000300 /* Frameworks */,
+				01A000000000000000000800 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Servera;
+			packageProductDependencies = (
+				01A000000000000000000D02 /* Traversio */,
+			);
+			productName = Servera;
+			productReference = 01A000000000000000000200 /* Servera.app */;
+			productType = "com.apple.product-type.application";
+		};
+		01B000000000000000000500 /* ServeraTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 01B000000000000000000900 /* Build configuration list for PBXNativeTarget "ServeraTests" */;
+			buildPhases = (
+				01B000000000000000000700 /* Sources */,
+				01B000000000000000000300 /* Frameworks */,
+				01B000000000000000000800 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				01B000000000000000000A01 /* PBXTargetDependency */,
+			);
+			name = ServeraTests;
+			packageProductDependencies = (
+			);
+			productName = ServeraTests;
+			productReference = 01B000000000000000000200 /* ServeraTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		01A000000000000000000600 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2650;
+				LastUpgradeCheck = 2650;
+				TargetAttributes = {
+					01A000000000000000000500 = {
+						CreatedOnToolsVersion = 26.5;
+					};
+					01B000000000000000000500 = {
+						CreatedOnToolsVersion = 26.5;
+						TestTargetID = 01A000000000000000000500;
+					};
+				};
+			};
+			buildConfigurationList = 01A000000000000000000901 /* Build configuration list for PBXProject "Servera" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 01A000000000000000000400;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				01A000000000000000000D01 /* XCLocalSwiftPackageReference "Packages/Traversio" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 01A000000000000000000402 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				01A000000000000000000500 /* Servera */,
+				01B000000000000000000500 /* ServeraTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		01A000000000000000000800 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		01B000000000000000000800 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		01A000000000000000000700 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				01A000000000000000000101 /* ServeraApp.swift in Sources */,
+				01A000000000000000000102 /* RootView.swift in Sources */,
+				01A000000000000000000103 /* ServeraTheme.swift in Sources */,
+				01A000000000000000000104 /* DashboardView.swift in Sources */,
+				01A000000000000000000105 /* NASView.swift in Sources */,
+				01A000000000000000000106 /* DockerView.swift in Sources */,
+				01A000000000000000000107 /* DevicesView.swift in Sources */,
+				01A000000000000000000108 /* SettingsView.swift in Sources */,
+				01A00000000000000000010A /* ManagedDeviceRecord.swift in Sources */,
+				01A00000000000000000010B /* KeychainService.swift in Sources */,
+				01A00000000000000000010C /* BackupService.swift in Sources */,
+				01A00000000000000000010D /* ServerStatusSnapshot.swift in Sources */,
+				01A00000000000000000010E /* SSHConnectionService.swift in Sources */,
+				01A000000000000000000110 /* ServerEditSheet.swift in Sources */,
+				01A000000000000000000112 /* ServerTerminalView.swift in Sources */,
+				01A000000000000000000113 /* EdgeSwipeBack.swift in Sources */,
+				01A000000000000000000114 /* SynologyClient.swift in Sources */,
+				01A000000000000000000115 /* NASEditSheet.swift in Sources */,
+				01A000000000000000000116 /* SynologyFileService.swift in Sources */,
+				01A000000000000000000117 /* NASFileBrowserView.swift in Sources */,
+				01A000000000000000000118 /* SynologyDockerService.swift in Sources */,
+				01A000000000000000000119 /* SynologyControlPanelService.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		01B000000000000000000700 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				01B000000000000000000101 /* ServerStatusParserTests.swift in Sources */,
+				01B000000000000000000103 /* ServerTerminalTests.swift in Sources */,
+				01B000000000000000000104 /* SynologyClientParsingTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		01B000000000000000000A01 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 01A000000000000000000500 /* Servera */;
+			targetProxy = 01B000000000000000000A00 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		01A000000000000000000A00 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		01A000000000000000000A01 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		01A000000000000000000A02 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "";
+				DEVELOPMENT_TEAM = W4SWC6L4B5;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Servera;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.hs.Servera;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		01A000000000000000000A03 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "";
+				DEVELOPMENT_TEAM = W4SWC6L4B5;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Servera;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.hs.Servera;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		01B000000000000000000A02 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = W4SWC6L4B5;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.hs.ServeraTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Servera.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Servera";
+			};
+			name = Debug;
+		};
+		01B000000000000000000A03 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = W4SWC6L4B5;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.hs.ServeraTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Servera.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Servera";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		01A000000000000000000900 /* Build configuration list for PBXNativeTarget "Servera" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				01A000000000000000000A02 /* Debug */,
+				01A000000000000000000A03 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		01A000000000000000000901 /* Build configuration list for PBXProject "Servera" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				01A000000000000000000A00 /* Debug */,
+				01A000000000000000000A01 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		01B000000000000000000900 /* Build configuration list for PBXNativeTarget "ServeraTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				01B000000000000000000A02 /* Debug */,
+				01B000000000000000000A03 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		01A000000000000000000D01 /* XCLocalSwiftPackageReference "Packages/Traversio" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Packages/Traversio;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		01A000000000000000000D02 /* Traversio */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 01A000000000000000000D01 /* XCLocalSwiftPackageReference "Packages/Traversio" */;
+			productName = Traversio;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 01A000000000000000000600 /* Project object */;
+}
