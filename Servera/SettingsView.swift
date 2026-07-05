@@ -1,6 +1,9 @@
 import SwiftUI
 import SwiftData
 import UniformTypeIdentifiers
+#if canImport(UIKit)
+import UIKit
+#endif
 
 // MARK: - 设置与备份界面
 // 设置页目前承载备份导入/导出和主题切换。备份工作交给 BackupService，
@@ -30,7 +33,8 @@ struct SettingsView: View {
                 } label: {
                     ServeraCard(cornerRadius: 32) {
                         VStack(spacing: 12) {
-                            if let uiImage = UIImage(named: "8ce-avatar.png") {
+                            if let imagePath = Bundle.main.path(forResource: "8ce-avatar", ofType: "png"),
+                               let uiImage = UIImage(contentsOfFile: imagePath) {
                                 Image(uiImage: uiImage)
                                     .resizable()
                                     .scaledToFill()

@@ -32,6 +32,8 @@
 		01A000000000000000000119 /* SynologyControlPanelService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A000000000000000000218 /* SynologyControlPanelService.swift */; };
 		01A00000000000000000011A /* SFTPService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A000000000000000000219 /* SFTPService.swift */; };
 		01A00000000000000000011B /* SFTPView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A00000000000000000021A /* SFTPView.swift */; };
+		01A000000000000000000120 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 01A000000000000000000209 /* Assets.xcassets */; };
+		01A000000000000000000121 /* 8ce-avatar.png in Resources */ = {isa = PBXBuildFile; fileRef = 01A00000000000000000021B /* 8ce-avatar.png */; };
 		01B000000000000000000101 /* ServerStatusParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01B000000000000000000201 /* ServerStatusParserTests.swift */; };
 		01B000000000000000000103 /* ServerTerminalTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01B000000000000000000203 /* ServerTerminalTests.swift */; };
 		01B000000000000000000104 /* SynologyClientParsingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01B000000000000000000204 /* SynologyClientParsingTests.swift */; };
@@ -74,6 +76,7 @@
 		01A000000000000000000218 /* SynologyControlPanelService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SynologyControlPanelService.swift; sourceTree = "<group>"; };
 		01A000000000000000000219 /* SFTPService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SFTPService.swift; sourceTree = "<group>"; };
 		01A00000000000000000021A /* SFTPView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SFTPView.swift; sourceTree = "<group>"; };
+		01A00000000000000000021B /* 8ce-avatar.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "8ce-avatar.png"; sourceTree = "<group>"; };
 		01B000000000000000000200 /* ServeraTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ServeraTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		01B000000000000000000201 /* ServerStatusParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerStatusParserTests.swift; sourceTree = "<group>"; };
 		01B000000000000000000203 /* ServerTerminalTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerTerminalTests.swift; sourceTree = "<group>"; };
@@ -135,6 +138,7 @@
 				01A000000000000000000218 /* SynologyControlPanelService.swift */,
 				01A000000000000000000219 /* SFTPService.swift */,
 				01A00000000000000000021A /* SFTPView.swift */,
+				01A00000000000000000021B /* 8ce-avatar.png */,
 				01A000000000000000000209 /* Assets.xcassets */,
 			);
 			path = Servera;
@@ -249,6 +253,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				01A000000000000000000120 /* Assets.xcassets in Resources */,
+				01A000000000000000000121 /* 8ce-avatar.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -435,6 +441,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "";
@@ -469,6 +476,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "";

@@ -122,14 +122,15 @@ actor SFTPService {
             let attributes = try await sftp.stat(remotePath)
             let totalBytes = attributes.size ?? 0
 
-            let bytes = try await sftp.readFile(remotePath) { transferProgress in
+            let byteArray = try await sftp.readFile(remotePath) { transferProgress in
                 if totalBytes > 0 {
                     let ratio = Double(transferProgress.bytesTransferred) / Double(totalBytes)
                     await progress?(min(1.0, ratio))
                 }
             }
 
-            try Data(bytes).write(to: localURL)
+            let data = Data(byteArray)
+            try data.write(to: localURL)
             await progress?(1.0)
         } catch {
             throw SFTPServiceError.operationFailed(error.localizedDescription)
