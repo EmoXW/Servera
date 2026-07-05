@@ -1,621 +1,462 @@
-import SwiftData
 import SwiftUI
+import SwiftData
 import UniformTypeIdentifiers
 
-// MARK: - SFTP 文件浏览器
-// 沿用 ServeraCard / HeaderBar / ServeraBackground / serveraAccent 配色，
-// 与设置页、详情页保持一致的玻璃卡片质感。
+// MARK: - 设置与备份界面
+// 设置页目前承载备份导入/导出和主题切换。备份工作交给 BackupService，
+// 让加密和文件格式保持可测试。
 
-struct SFTPView: View {
-    let device: DashboardDevice
-
-    @Environment(\.dismiss) private var dismiss
+struct SettingsView: View {
     @Environment(\.modelContext) private var modelContext
-
-    @State private var currentPath: String = ""
-    @State private var entries: [SFTPEntry] = []
-    @State private var pathStack: [String] = []
-    @State private var isLoading = false
-    @State private var errorMessage: String?
-    @State private var connectionState: SFTPConnectionState = .idle
-    @State private var pendingAction: SFTPAction?
-    @State private var newFolderName = ""
-    @State private var renameTarget: SFTPEntry?
-    @State private var renameText = ""
-    @State private var isImportingFile = false
-    @State private var isExportingFile = false
-    @State private var exportDocument: SFTPFileDocument?
-    @State private var transferProgress: Double?
-    @State private var transferLabel: String = ""
+    @AppStorage("servera.theme.id") private var selectedThemeID = ServeraThemePreset.fallback.id
+    @Query(sort: [SortDescriptor(\ManagedDeviceRecord.orderIndex), SortDescriptor(\ManagedDeviceRecord.createdAt)])
+    private var deviceRecords: [ManagedDeviceRecord]
+    @State private var activeSheet: SettingsSheet?
+    @State private var exportDocument = BackupFileDocument()
+    @State private var isExportingBackup = false
+    @State private var isImportingBackup = false
+    @State private var pendingImportPassword = ""
+    @State private var resultMessage: String?
 
     var body: some View {
-        ZStack {
-            ServeraBackground().ignoresSafeArea()
+        ScrollView(showsIndicators: false) {
+            VStack(spacing: 18) {
+                HeaderBar(title: "设置")
 
-            VStack(spacing: 0) {
-                sftpHeader
-                pathBreadcrumb
-                contentList
-                if let progress = transferProgress {
-                    transferBar(progress: progress)
-                }
-            }
-        }
-        .task {
-            await initializeSession()
-        }
-        .onDisappear {
-            connectionState = .closed
-        }
-        .edgeSwipeBack {
-            dismiss()
-        }
-        .alert("SFTP", isPresented: Binding(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })) {
-            Button("知道了", role: .cancel) {}
-        } message: {
-            Text(errorMessage ?? "")
-        }
-        .sheet(item: $pendingAction) { action in
-            switch action {
-            case .newFolder:
-                NavigationStack {
-                    SFTPInputSheet(
-                        title: "新建文件夹",
-                        placeholder: "文件夹名称",
-                        confirmTitle: "创建"
-                    ) { name in
-                        newFolderName = name
-                        pendingAction = nil
-                        Task { await createFolder(name: name) }
-                    }
-                }
-                .presentationDetents([.medium])
-            case .rename(let entry):
-                NavigationStack {
-                    SFTPInputSheet(
-                        title: "重命名",
-                        placeholder: "新名称",
-                        initialText: entry.name,
-                        confirmTitle: "保存"
-                    ) { name in
-                        renameText = name
-                        pendingAction = nil
-                        Task { await renameEntry(entry, to: name) }
-                    }
-                }
-                .presentationDetents([.medium])
-            }
-        }
-        .fileImporter(
-            isPresented: $isImportingFile,
-            allowedContentTypes: [.item]
-        ) { result in
-            switch result {
-            case .success(let url):
-                Task { await uploadFile(from: url) }
-            case .failure(let error):
-                errorMessage = error.localizedDescription
-            }
-        }
-        .fileExporter(
-            isPresented: $isExportingFile,
-            document: exportDocument,
-            contentType: .data,
-            defaultFilename: exportDocument?.fileURL.lastPathComponent ?? "download"
-        ) { _ in
-            exportDocument = nil
-        }
-    }
-
-    // MARK: - 头部
-
-    private var sftpHeader: some View {
-        HStack(spacing: 12) {
-            Button {
-                dismiss()
-            } label: {
-                Image(systemName: "xmark")
-                    .font(.system(size: 17, weight: .black))
-                    .foregroundStyle(.primary)
-                    .frame(width: 44, height: 44)
-                    .background(.white.opacity(0.78), in: Circle())
-                    .shadow(color: Color.serveraAccent.opacity(0.14), radius: 16, y: 8)
-            }
-            .buttonStyle(.plain)
-
-            VStack(alignment: .leading, spacing: 3) {
-                Text("文件管理")
-                    .font(.system(size: 22, weight: .black))
-                HStack(spacing: 6) {
-                    Circle()
-                        .fill(connectionState.tint)
-                        .frame(width: 7, height: 7)
-                    Text(connectionState.title)
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(Color.serveraTextSecondary)
-                }
-            }
-
-            Spacer()
-
-            Button {
-                pendingAction = .newFolder
-            } label: {
-                Image(systemName: "folder.badge.plus")
-                    .font(.system(size: 17, weight: .heavy))
-                    .foregroundStyle(Color.serveraAccentDeep)
-                    .frame(width: 44, height: 44)
-                    .background(.white.opacity(0.78), in: Circle())
-                    .shadow(color: Color.serveraAccent.opacity(0.14), radius: 16, y: 8)
-            }
-            .buttonStyle(.plain)
-            .disabled(connectionState != .connected)
-
-            Button {
-                isImportingFile = true
-            } label: {
-                Image(systemName: "arrow.up.to.line.alt")
-                    .font(.system(size: 17, weight: .heavy))
-                    .foregroundStyle(Color.serveraAccentDeep)
-                    .frame(width: 44, height: 44)
-                    .background(.white.opacity(0.78), in: Circle())
-                    .shadow(color: Color.serveraAccent.opacity(0.14), radius: 16, y: 8)
-            }
-            .buttonStyle(.plain)
-            .disabled(connectionState != .connected)
-        }
-        .padding(.horizontal, 20)
-        .padding(.top, 14)
-        .padding(.bottom, 8)
-    }
-
-    // MARK: - 路径面包屑
-
-    private var pathBreadcrumb: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 6) {
                 Button {
-                    pathStack.removeAll()
-                    currentPath = ""
-                    Task { await loadDirectory("/") }
+                    if let url = URL(string: "https://www.emoxw.cn") {
+                        UIApplication.shared.open(url)
+                    }
                 } label: {
-                    Image(systemName: "externaldrive")
-                        .font(.system(size: 13, weight: .heavy))
-                        .foregroundStyle(Color.serveraAccentDeep)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 6)
-                        .background(Color.serveraTintSoft, in: Capsule())
+                    ServeraCard(cornerRadius: 32) {
+                        VStack(spacing: 12) {
+                            if let uiImage = UIImage(named: "8ce-avatar.png") {
+                                Image(uiImage: uiImage)
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 58, height: 58)
+                                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                            } else {
+                                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                    .fill(LinearGradient(colors: [.black.opacity(0.82), .serveraAccentDeep], startPoint: .topLeading, endPoint: .bottomTrailing))
+                                    .frame(width: 58, height: 58)
+                                    .overlay(Image(systemName: "person.fill").font(.title2.weight(.heavy)).foregroundStyle(.white))
+                            }
+                            Text("8CE")
+                                .font(.system(size: 26, weight: .black))
+                            Text("访问个人主页，了解更多内容。")
+                                .font(.system(size: 15, weight: .medium))
+                                .foregroundStyle(Color.serveraTextSecondary)
+                                .multilineTextAlignment(.center)
+                                .lineSpacing(3)
+                        }
+                        .frame(maxWidth: .infinity)
+                    }
                 }
                 .buttonStyle(.plain)
 
-                ForEach(pathStack.indices, id: \.self) { index in
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 10, weight: .black))
-                        .foregroundStyle(Color.serveraTextSecondary.opacity(0.55))
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("数据保护")
+                        .font(.system(size: 18, weight: .black))
+                        .padding(.horizontal, 6)
 
-                    Button {
-                        let target = pathStack[...index].joined(separator: "/")
-                        pathStack.removeLast(pathStack.count - index - 1)
-                        Task { await loadDirectory(target) }
-                    } label: {
-                        Text(pathStack[index])
-                            .font(.system(size: 13, weight: .bold))
-                            .foregroundStyle(.primary)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 6)
-                            .background(.white.opacity(0.66), in: Capsule())
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 8)
-        }
-    }
-
-    // MARK: - 文件列表
-
-    private var contentList: some View {
-        ScrollView(showsIndicators: false) {
-            VStack(spacing: 12) {
-                if isLoading && entries.isEmpty {
-                    SFTPEmptyState(
-                        icon: "arrow.triangle.2.circlepath",
-                        title: "正在加载",
-                        subtitle: "正在连接服务器并读取目录…"
-                    )
-                } else if entries.isEmpty {
-                    SFTPEmptyState(
-                        icon: "tray",
-                        title: "空文件夹",
-                        subtitle: "点击右上角上传文件或新建文件夹。"
-                    )
-                } else {
-                    ForEach(entries) { entry in
-                        SFTPEntryRow(
-                            entry: entry,
-                            onOpen: {
-                                if entry.isDirectory {
-                                    pathStack.append(entry.name)
-                                    Task { await loadDirectory(entry.absolutePath) }
-                                } else {
-                                    Task { await downloadFile(entry: entry) }
+                    ServeraCard(cornerRadius: 28) {
+                        VStack(alignment: .leading, spacing: 14) {
+                            HStack(spacing: 12) {
+                                Image(systemName: "exclamationmark.shield.fill")
+                                    .font(.system(size: 22, weight: .heavy))
+                                    .foregroundStyle(Color.serveraAmber)
+                                    .frame(width: 38, height: 38)
+                                    .background(Color.serveraAmber.opacity(0.13), in: Circle())
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("未开启同步时请先备份")
+                                        .font(.system(size: 17, weight: .black))
+                                    Text("删除 App 会清除本机设备配置。建议定期导出加密备份。")
+                                        .font(.system(size: 13, weight: .semibold))
+                                        .foregroundStyle(Color.serveraTextSecondary)
+                                        .lineSpacing(2)
                                 }
-                            },
-                            onRename: {
-                                pendingAction = .rename(entry)
-                            },
-                            onDelete: {
-                                Task { await deleteEntry(entry) }
                             }
-                        )
+
+                            Divider().overlay(Color.serveraBorder)
+
+                            SettingsActionRow(icon: "lock.doc", title: "导出加密备份", value: "免费") {
+                                activeSheet = .backupExport
+                            }
+
+                            SettingsActionRow(icon: "square.and.arrow.down", title: "恢复备份", value: "导入") {
+                                activeSheet = .backupRestore
+                            }
+                        }
+                    }
+                }
+
+                ServeraCard(cornerRadius: 28) {
+                    VStack(spacing: 0) {
+                        Button {
+                            activeSheet = .theme
+                        } label: {
+                            SettingsRow(icon: "circle.lefthalf.filled", title: "设置主题", value: currentTheme.name)
+                        }
+                        .buttonStyle(.plain)
+                        SettingsRow(icon: "faceid", title: "Face ID 安全验证", value: "已开启", showDivider: false)
                     }
                 }
             }
             .padding(.horizontal, 20)
-            .padding(.top, 6)
-            .padding(.bottom, 32)
+            .padding(.top, 18)
         }
-        .refreshable {
-            await loadDirectory(currentPath)
-        }
-    }
-
-    // MARK: - 传输进度条
-
-    private func transferBar(progress: Double) -> some View {
-        VStack(spacing: 6) {
-            HStack {
-                Text(transferLabel)
-                    .font(.system(size: 12, weight: .bold))
-                Spacer()
-                Text("\(Int(progress * 100))%")
-                    .font(.system(size: 12, weight: .black))
-                    .foregroundStyle(Color.serveraAccentDeep)
-            }
-            ProgressView(value: progress)
-                .tint(Color.serveraAccentDeep)
-        }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 10)
-        .background(.ultraThinMaterial)
-    }
-
-    // MARK: - 业务逻辑
-
-    private func initializeSession() async {
-        connectionState = .connecting
-        do {
-            let request = try makeRequest()
-            let home = try await SFTPService.shared.homeDirectory(for: request)
-            currentPath = home
-            pathStack = home.split(separator: "/").map(String.init)
-            connectionState = .connected
-            await loadDirectory(home)
-        } catch {
-            connectionState = .failed
-            errorMessage = error.localizedDescription
-        }
-    }
-
-    private func loadDirectory(_ path: String) async {
-        isLoading = true
-        currentPath = path
-        do {
-            let request = try makeRequest()
-            entries = try await SFTPService.shared.listDirectory(path, for: request)
-        } catch {
-            errorMessage = error.localizedDescription
-        }
-        isLoading = false
-    }
-
-    private func createFolder(name: String) async {
-        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { return }
-        let newPath = currentPath.hasSuffix("/") ? "\(currentPath)\(trimmed)" : "\(currentPath)/\(trimmed)"
-        do {
-            let request = try makeRequest()
-            try await SFTPService.shared.createDirectory(newPath, for: request)
-            await loadDirectory(currentPath)
-        } catch {
-            errorMessage = error.localizedDescription
-        }
-    }
-
-    private func renameEntry(_ entry: SFTPEntry, to newName: String) async {
-        let trimmed = newName.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty, trimmed != entry.name else { return }
-        let parent = entry.absolutePath.contains("/")
-            ? String(entry.absolutePath.dropLast(entry.name.count).dropLast())
-            : ""
-        let newPath = parent.isEmpty ? "/\(trimmed)" : "\(parent)/\(trimmed)"
-        do {
-            let request = try makeRequest()
-            try await SFTPService.shared.rename(entry.absolutePath, to: newPath, for: request)
-            await loadDirectory(currentPath)
-        } catch {
-            errorMessage = error.localizedDescription
-        }
-    }
-
-    private func deleteEntry(_ entry: SFTPEntry) async {
-        do {
-            let request = try makeRequest()
-            if entry.isDirectory {
-                try await SFTPService.shared.removeDirectory(entry.absolutePath, for: request)
-            } else {
-                try await SFTPService.shared.removeFile(entry.absolutePath, for: request)
-            }
-            await loadDirectory(currentPath)
-        } catch {
-            errorMessage = error.localizedDescription
-        }
-    }
-
-    private func uploadFile(from localURL: URL) async {
-        transferLabel = "正在上传 \(localURL.lastPathComponent)"
-        transferProgress = 0
-        let remotePath = currentPath.hasSuffix("/")
-            ? "\(currentPath)\(localURL.lastPathComponent)"
-            : "\(currentPath)/\(localURL.lastPathComponent)"
-        do {
-            let didAccess = localURL.startAccessingSecurityScopedResource()
-            defer { if didAccess { localURL.stopAccessingSecurityScopedResource() } }
-            let request = try makeRequest()
-            try await SFTPService.shared.uploadFile(
-                localURL,
-                to: remotePath,
-                for: request,
-                progress: { ratio in
-                    await MainActor.run {
-                        transferProgress = ratio
-                    }
+        .sheet(item: $activeSheet) { sheet in
+            switch sheet {
+            case .theme:
+                ThemeSheet()
+                    .presentationDetents([.large])
+            case .backupExport:
+                BackupSheet(mode: .export) { password in
+                    prepareBackupExport(password: password)
                 }
-            )
-            transferProgress = nil
-            await loadDirectory(currentPath)
-        } catch {
-            transferProgress = nil
-            errorMessage = error.localizedDescription
-        }
-    }
-
-    private func downloadFile(entry: SFTPEntry) async {
-        transferLabel = "正在下载 \(entry.name)"
-        transferProgress = 0
-        let temporaryURL = FileManager.default.temporaryDirectory.appendingPathComponent(entry.name)
-        do {
-            let request = try makeRequest()
-            try await SFTPService.shared.downloadFile(
-                entry.absolutePath,
-                to: temporaryURL,
-                for: request,
-                progress: { ratio in
-                    await MainActor.run {
-                        transferProgress = ratio
-                    }
+                    .presentationDetents([.medium])
+            case .backupRestore:
+                BackupSheet(mode: .restore) { password in
+                    pendingImportPassword = password
+                    activeSheet = nil
+                    isImportingBackup = true
                 }
-            )
-            transferProgress = nil
-            exportDocument = SFTPFileDocument(fileURL: temporaryURL)
-            isExportingFile = true
-        } catch {
-            transferProgress = nil
-            errorMessage = error.localizedDescription
+                    .presentationDetents([.medium])
+            }
+        }
+        .fileExporter(
+            isPresented: $isExportingBackup,
+            document: exportDocument,
+            contentType: .json,
+            defaultFilename: "Servera-Backup"
+        ) { result in
+            switch result {
+            case .success:
+                resultMessage = "加密备份已导出。请记住备份密码，首版备份不包含明文密码或私钥。"
+            case .failure(let error):
+                resultMessage = error.localizedDescription
+            }
+        }
+        .fileImporter(isPresented: $isImportingBackup, allowedContentTypes: [.json]) { result in
+            handleBackupImport(result)
+        }
+        .alert("数据保护", isPresented: Binding(get: { resultMessage != nil }, set: { if !$0 { resultMessage = nil } })) {
+            Button("知道了", role: .cancel) {}
+        } message: {
+            Text(resultMessage ?? "")
         }
     }
 
-    private func makeRequest() throws -> SSHConnectionRequest {
-        let id = device.id
-        let descriptor = FetchDescriptor<ManagedDeviceRecord>(
-            predicate: #Predicate { $0.deviceID == id }
-        )
-        guard let record = try modelContext.fetch(descriptor).first else {
-            throw ServeraSSHError.connectionFailed("未找到本地设备记录。")
+    private var currentTheme: ServeraThemePreset {
+        ServeraThemePreset.preset(for: selectedThemeID)
+    }
+
+    private func prepareBackupExport(password: String) {
+        // 真正的编码/加密由备份服务完成；设置页只准备 SwiftUI 导出需要的文档对象。
+        do {
+            exportDocument = BackupFileDocument(data: try BackupService.exportData(from: deviceRecords, password: password))
+            activeSheet = nil
+            isExportingBackup = true
+        } catch {
+            resultMessage = error.localizedDescription
         }
-        guard let credentialIdentifier = record.credentialIdentifier,
-              let credential = try KeychainService.loadCredentialBundle(id: credentialIdentifier) else {
-            record.connectionStatus = .needsVerification
-            record.credentialNeedsVerification = true
-            try modelContext.save()
-            throw ServeraSSHError.connectionFailed("凭据不存在，请编辑连接后重新验证。")
+    }
+
+    private func handleBackupImport(_ result: Result<URL, Error>) {
+        // 文件可能来自 iCloud/文件 App，读取加密备份字节前先申请 security-scoped 访问。
+        do {
+            let url = try result.get()
+            let didAccess = url.startAccessingSecurityScopedResource()
+            defer {
+                if didAccess { url.stopAccessingSecurityScopedResource() }
+            }
+            let data = try Data(contentsOf: url)
+            let restoredCount = try BackupService.importData(data, password: pendingImportPassword, into: modelContext, existingRecords: deviceRecords)
+            pendingImportPassword = ""
+            resultMessage = "已恢复 \(restoredCount) 台设备的基础配置。密码、私钥和 DSM Token 需要重新验证。"
+        } catch {
+            pendingImportPassword = ""
+            resultMessage = error.localizedDescription
         }
-        return SSHConnectionRequest(
-            host: record.host,
-            port: record.port,
-            username: record.account,
-            authenticationKind: record.authenticationKind,
-            credential: credential,
-            acceptUnknownHostKey: false
-        )
     }
 }
 
-// MARK: - 子组件
-
-enum SFTPAction: Identifiable {
-    case newFolder
-    case rename(SFTPEntry)
+enum SettingsSheet: Identifiable {
+    case theme
+    case backupExport
+    case backupRestore
 
     var id: String {
         switch self {
-        case .newFolder: "newFolder"
-        case .rename(let entry): "rename-\(entry.id)"
+        case .theme: "theme"
+        case .backupExport: "backupExport"
+        case .backupRestore: "backupRestore"
         }
     }
 }
 
-enum SFTPConnectionState: Equatable {
-    case idle
-    case connecting
-    case connected
-    case failed
-    case closed
-
-    var title: String {
-        switch self {
-        case .idle: "等待连接"
-        case .connecting: "正在连接…"
-        case .connected: "已连接"
-        case .failed: "连接失败"
-        case .closed: "已断开"
-        }
-    }
-
-    var tint: Color {
-        switch self {
-        case .idle: Color.serveraTextSecondary
-        case .connecting: Color.serveraAmber
-        case .connected: Color.serveraLeaf
-        case .failed, .closed: Color.serveraAccentDeep
-        }
-    }
-}
-
-struct SFTPEntryRow: View {
-    let entry: SFTPEntry
-    var onOpen: () -> Void
-    var onRename: () -> Void
-    var onDelete: () -> Void
-
-    @State private var isShowingActions = false
+struct SettingsRow: View {
+    let icon: String
+    let title: String
+    let value: String
+    var showDivider = true
 
     var body: some View {
-        Button {
-            onOpen()
-        } label: {
-            HStack(spacing: 14) {
-                Image(systemName: entry.isDirectory ? "folder.fill" : iconForFile)
-                    .font(.system(size: 19, weight: .heavy))
-                    .foregroundStyle(entry.isDirectory ? Color.serveraAccentDeep : Color.serveraSky)
-                    .frame(width: 44, height: 44)
-                    .background(
-                        (entry.isDirectory ? Color.serveraTintSoft : Color.serveraSky.opacity(0.18)),
-                        in: RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    )
-
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(entry.name)
-                        .font(.system(size: 15, weight: .bold))
-                        .foregroundStyle(.primary)
-                        .lineLimit(1)
-                    Text(subtitle)
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(Color.serveraTextSecondary)
-                }
-
-                Spacer()
-
-                if !entry.isDirectory {
-                    Image(systemName: "arrow.down.to.line.alt")
-                        .font(.system(size: 13, weight: .heavy))
-                        .foregroundStyle(Color.serveraTextSecondary.opacity(0.6))
-                }
-
-                Menu {
-                    Button {
-                        onRename()
-                    } label: {
-                        Label("重命名", systemImage: "pencil")
-                    }
-                    Button(role: .destructive) {
-                        onDelete()
-                    } label: {
-                        Label("删除", systemImage: "trash")
-                    }
-                } label: {
-                    Image(systemName: "ellipsis")
-                        .font(.system(size: 14, weight: .black))
-                        .foregroundStyle(Color.serveraTextSecondary)
-                        .frame(width: 32, height: 32)
-                }
+        HStack(spacing: 14) {
+            Image(systemName: icon)
+                .frame(width: 26)
+            Text(title)
+                .font(.system(size: 17, weight: .bold))
+            Spacer()
+            Text(value)
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(Color.serveraTextSecondary)
+        }
+        .padding(.vertical, 15)
+        .overlay(alignment: .bottom) {
+            if showDivider {
+                Rectangle().fill(Color.serveraBorder.opacity(0.6)).frame(height: 1)
             }
-            .padding(14)
-            .background(.white.opacity(0.72), in: RoundedRectangle(cornerRadius: 22, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: 22, style: .continuous).stroke(Color.serveraBorder.opacity(0.7), lineWidth: 1))
+        }
+    }
+}
+
+struct SettingsActionRow: View {
+    let icon: String
+    let title: String
+    let value: String
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 14) {
+                Image(systemName: icon)
+                    .frame(width: 26)
+                Text(title)
+                    .font(.system(size: 17, weight: .bold))
+                Spacer()
+                Text(value)
+                    .font(.system(size: 14, weight: .heavy))
+                    .foregroundStyle(Color.serveraAccentDeep)
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 12, weight: .heavy))
+                    .foregroundStyle(Color.serveraTextSecondary.opacity(0.55))
+            }
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
     }
+}
 
-    private var iconForFile: String {
-        let ext = (entry.name as NSString).pathExtension.lowercased()
-        switch ext {
-        case "txt", "md", "log": "doc.text.fill"
-        case "png", "jpg", "jpeg", "gif", "heic": "photo.fill"
-        case "mp4", "mov", "avi", "mkv": "film.fill"
-        case "mp3", "wav", "flac": "music.note"
-        case "zip", "tar", "gz", "rar", "7z": "archivebox.fill"
-        case "json", "xml", "yaml", "yml", "toml": "curlybraces"
-        case "sh", "bash": "terminal.fill"
-        case "pdf": "doc.richtext.fill"
-        default: "doc.fill"
-        }
+struct ThemeSheet: View {
+    @AppStorage("servera.theme.id") private var selectedThemeID = ServeraThemePreset.fallback.id
+    @AppStorage("servera.appearance.mode") private var appearanceModeRawValue = ServeraAppearanceMode.system.rawValue
+    private let columns = Array(repeating: GridItem(.flexible(), spacing: 14), count: 2)
+
+    private var selectedAppearanceMode: ServeraAppearanceMode {
+        ServeraAppearanceMode.mode(for: appearanceModeRawValue)
     }
 
-    private var subtitle: String {
-        if entry.isDirectory {
-            return "文件夹"
+    var body: some View {
+        ScrollView(showsIndicators: false) {
+            VStack(alignment: .leading, spacing: 20) {
+                Capsule()
+                    .fill(Color.serveraBorder)
+                    .frame(width: 42, height: 5)
+                    .frame(maxWidth: .infinity)
+                    .padding(.top, 8)
+
+                Text("设置主题")
+                    .font(.system(size: 32, weight: .black))
+
+                Text("选择一套柔和混色主调，背景、底部导航和玻璃卡片会立即跟随变化。")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(Color.serveraTextSecondary)
+                    .lineSpacing(3)
+
+                ServeraCard(cornerRadius: 28) {
+                    VStack(alignment: .leading, spacing: 14) {
+                        Text("外观模式")
+                            .font(.system(size: 18, weight: .black))
+
+                        HStack(spacing: 10) {
+                            ForEach(ServeraAppearanceMode.allCases) { mode in
+                                ThemeAppearanceButton(
+                                    mode: mode,
+                                    isSelected: selectedAppearanceMode == mode
+                                ) {
+                                    withAnimation(.spring(response: 0.32, dampingFraction: 0.86)) {
+                                        appearanceModeRawValue = mode.rawValue
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                LazyVGrid(columns: columns, spacing: 14) {
+                    ForEach(ServeraThemePreset.presets) { preset in
+                        ThemePresetCard(
+                            preset: preset,
+                            isSelected: selectedThemeID == preset.id
+                        ) {
+                            withAnimation(.spring(response: 0.36, dampingFraction: 0.86)) {
+                                selectedThemeID = preset.id
+                            }
+                        }
+                    }
+                }
+            }
+            .padding(22)
         }
-        if let size = entry.sizeBytes, let intSize = Int64(exactly: size) {
-            return ServerStatusParser.byteText(intSize)
-        }
-        return "文件"
+        .environment(\.serveraTheme, ServeraThemePreset.preset(for: selectedThemeID))
+        .background(ServeraBackground().ignoresSafeArea())
     }
 }
 
-struct SFTPEmptyState: View {
-    let icon: String
-    let title: String
-    let subtitle: String
+struct ThemeAppearanceButton: View {
+    @Environment(\.serveraTheme) private var theme
+    let mode: ServeraAppearanceMode
+    let isSelected: Bool
+    let action: () -> Void
 
     var body: some View {
-        VStack(spacing: 14) {
-            Image(systemName: icon)
-                .font(.system(size: 38, weight: .heavy))
-                .foregroundStyle(Color.serveraAccentDeep.opacity(0.7))
-                .frame(width: 72, height: 72)
-                .background(Color.serveraTintSoft, in: Circle())
-            Text(title)
-                .font(.system(size: 18, weight: .black))
-            Text(subtitle)
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundStyle(Color.serveraTextSecondary)
-                .multilineTextAlignment(.center)
-                .lineSpacing(2)
+        Button(action: action) {
+            VStack(spacing: 7) {
+                Image(systemName: mode.icon)
+                    .font(.system(size: 15, weight: .heavy))
+                Text(mode.title)
+                    .font(.system(size: 13, weight: .black))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.82)
+            }
+            .foregroundStyle(isSelected ? .white : theme.accentDeep)
+            .frame(maxWidth: .infinity)
+            .frame(height: 58)
+            .background {
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .fill(isSelected ? theme.accentDeep : theme.tintSoft.opacity(0.58))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 18, style: .continuous)
+                            .stroke(isSelected ? Color.white.opacity(0.74) : theme.border.opacity(0.64), lineWidth: 1)
+                    )
+            }
         }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 60)
+        .buttonStyle(.plain)
     }
 }
 
-struct SFTPInputSheet: View {
-    let title: String
-    let placeholder: String
-    var initialText: String = ""
-    let confirmTitle: String
-    let onConfirm: (String) -> Void
-
-    @Environment(\.dismiss) private var dismiss
-    @State private var text = ""
+struct ThemePresetCard: View {
+    let preset: ServeraThemePreset
+    let isSelected: Bool
+    let action: () -> Void
 
     var body: some View {
+        Button(action: action) {
+            VStack(alignment: .leading, spacing: 14) {
+                ZStack(alignment: .bottomTrailing) {
+                    RoundedRectangle(cornerRadius: 24, style: .continuous)
+                        .fill(
+                            LinearGradient(
+                                colors: [preset.background, preset.tintSoft, .white],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(height: 104)
+                        .overlay(alignment: .topLeading) {
+                            Circle()
+                                .fill(preset.tint.opacity(0.56))
+                                .frame(width: 74, height: 74)
+                                .blur(radius: 8)
+                                .offset(x: -18, y: -14)
+                        }
+                        .overlay(alignment: .bottomTrailing) {
+                            Circle()
+                                .fill(preset.leafSoft.opacity(0.92))
+                                .frame(width: 72, height: 72)
+                                .blur(radius: 10)
+                                .offset(x: 16, y: 12)
+                        }
+                        .overlay(alignment: .center) {
+                            Circle()
+                                .fill(.white.opacity(0.72))
+                                .frame(width: 54, height: 54)
+                                .overlay(
+                                    Image(systemName: preset.icon)
+                                        .font(.system(size: 18, weight: .heavy))
+                                        .foregroundStyle(preset.accentDeep)
+                                )
+                                .shadow(color: preset.accent.opacity(0.20), radius: 14, y: 8)
+                        }
+
+                    if isSelected {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: 24, weight: .heavy))
+                            .foregroundStyle(preset.accentDeep)
+                            .background(.white, in: Circle())
+                            .padding(10)
+                    }
+                }
+
+                HStack(spacing: 8) {
+                    Text(preset.name)
+                        .font(.system(size: 16, weight: .black))
+                        .foregroundStyle(Color.primary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.82)
+                    Spacer(minLength: 4)
+                    Circle().fill(preset.accentDeep).frame(width: 10, height: 10)
+                    Circle().fill(preset.sky).frame(width: 10, height: 10)
+                    Circle().fill(preset.amber).frame(width: 10, height: 10)
+                }
+            }
+            .padding(12)
+            .background {
+                RoundedRectangle(cornerRadius: 28, style: .continuous)
+                    .fill(.white.opacity(isSelected ? 0.86 : 0.66))
+                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 28, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 28, style: .continuous)
+                            .stroke(isSelected ? preset.accentDeep.opacity(0.36) : preset.border.opacity(0.62), lineWidth: isSelected ? 1.4 : 1)
+                    )
+                    .shadow(color: preset.accent.opacity(isSelected ? 0.20 : 0.10), radius: isSelected ? 22 : 14, y: isSelected ? 12 : 8)
+            }
+            .contentShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+struct BackupSheet: View {
+    let mode: BackupMode
+    let action: (String) -> Void
+    @State private var password = ""
+
+    var body: some View {
+        // 导入/导出共用同一个 sheet，保证加密文案和密码校验一致。
         VStack(spacing: 18) {
             Capsule()
                 .fill(Color.serveraBorder)
                 .frame(width: 42, height: 5)
                 .padding(.top, 8)
 
-            Image(systemName: "folder.badge.plus")
-                .font(.system(size: 30, weight: .heavy))
+            Image(systemName: "lock.doc")
+                .font(.system(size: 34, weight: .heavy))
                 .foregroundStyle(Color.serveraAccentDeep)
-                .frame(width: 64, height: 64)
-                .background(Color.serveraTintSoft, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+                .frame(width: 72, height: 72)
+                .background(Color.serveraTintSoft, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
 
-            Text(title)
-                .font(.system(size: 24, weight: .black))
+            Text("加密备份")
+                .font(.system(size: 30, weight: .black))
 
-            TextField(placeholder, text: $text)
+            Text(mode.description)
+                .multilineTextAlignment(.center)
+                .foregroundStyle(Color.serveraTextSecondary)
+                .lineSpacing(3)
+
+            SecureField(mode.passwordPlaceholder, text: $password)
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
                 .font(.system(size: 17, weight: .semibold))
@@ -625,43 +466,48 @@ struct SFTPInputSheet: View {
                 .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).stroke(Color.serveraBorder, lineWidth: 1))
 
             Button {
-                onConfirm(text)
-                dismiss()
+                action(password)
             } label: {
-                Text(confirmTitle)
+                Text(mode.buttonTitle)
             }
-            .font(.system(size: 17, weight: .heavy))
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 15)
-            .foregroundStyle(.white)
-            .background(text.isEmpty ? Color.serveraTextSecondary.opacity(0.38) : Color.serveraAccentDeep, in: Capsule())
-            .disabled(text.isEmpty)
+                .font(.system(size: 17, weight: .heavy))
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 15)
+                .foregroundStyle(.white)
+                .background(password.isEmpty ? Color.serveraTextSecondary.opacity(0.38) : Color.serveraAccentDeep, in: Capsule())
+                .disabled(password.isEmpty)
         }
         .padding(22)
         .background(ServeraBackground().ignoresSafeArea())
-        .onAppear {
-            text = initialText
+    }
+}
+
+enum BackupMode {
+    case export
+    case restore
+
+    var description: String {
+        switch self {
+        case .export:
+            "免费用户可以导出一份加密备份文件，保存服务器和 NAS 基础配置。请自己保存备份密码；密码、私钥等敏感凭据默认不明文导出。"
+        case .restore:
+            "输入导出时设置的备份密码，然后选择备份文件恢复。恢复后敏感凭据需要重新验证。"
+        }
+    }
+
+    var buttonTitle: String {
+        switch self {
+        case .export: "导出加密备份"
+        case .restore: "选择备份文件恢复"
+        }
+    }
+
+    var passwordPlaceholder: String {
+        switch self {
+        case .export: "设置备份密码"
+        case .restore: "输入备份密码"
         }
     }
 }
 
-// MARK: - 文件导出辅助
 
-struct SFTPFileDocument: FileDocument {
-    static var readableContentTypes: [UTType] { [.data] }
-    static var writableContentTypes: [UTType] { [.data] }
-
-    let fileURL: URL
-
-    init(fileURL: URL) {
-        self.fileURL = fileURL
-    }
-
-    init(configuration: ReadConfiguration) throws {
-        self.fileURL = FileManager.default.temporaryDirectory
-    }
-
-    func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
-        try FileWrapper(url: fileURL, options: .immediate)
-    }
-}
