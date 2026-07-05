@@ -246,10 +246,11 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		01B000000000000000000800 /* Resources */ = {
+		01A000000000000000000800 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				01A000000000000000000209 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
