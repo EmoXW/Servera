@@ -45,17 +45,6 @@ struct DashboardView: View {
                     }
                 }
 
-                HStack {
-                    Text("服务器星图")
-                        .font(.system(size: 18, weight: .heavy))
-                    Spacer()
-                    if !orderedDevices.isEmpty {
-                        Text(orderedDevices.count > 1 ? "拖动漂移 · 点击进入详情" : "点击进入详情")
-                            .font(.system(size: 13, weight: .semibold))
-                            .foregroundStyle(Color.serveraTextSecondary)
-                    }
-                }
-
                 if devices.isEmpty {
                     ServeraCard(cornerRadius: 30) {
                         VStack(spacing: 12) {
@@ -73,8 +62,6 @@ struct DashboardView: View {
                         .frame(maxWidth: .infinity)
                     }
                 } else {
-                    ServerOrbitGardenView(devices: orderedDevices, onSelect: onSelect)
-
                     VStack(spacing: 12) {
                         ForEach(orderedDevices) { device in
                             DashboardDeviceCard(
