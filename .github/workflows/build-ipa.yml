@@ -1,21 +1,18 @@
 name: Build IPA
 
 on:
-  workflow_dispatch:        # 手动触发
+  workflow_dispatch:
   push:
     branches: [ main ]
 
 jobs:
   build:
-    runs-on: macos-26       # 自带 Xcode 26.x；如不可用退回 macos-15
+    runs-on: macos-26
     steps:
       - uses: actions/checkout@v4
 
       - name: Select Xcode
         run: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
-
-      - name: List schemes
-        run: xcodebuild -project Servera.xcodeproj -list
 
       - name: Archive (unsigned)
         run: |
@@ -30,6 +27,24 @@ jobs:
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY="" \
             archive
+
+      - name: Inject app icon
+        run: |
+          APP_PATH="build/Servera.xcarchive/Products/Applications/Servera.app"
+          # 生成 iOS 需要的图标尺寸
+          sips -z 120 120 icon.png --out "$APP_PATH/icon-120.png"
+          sips -z 180 180 icon.png --out "$APP_PATH/icon-180.png"
+          sips -z 80 80 icon.png --out "$APP_PATH/icon-80.png"
+          sips -z 40 40 icon.png --out "$APP_PATH/icon-40.png"
+          sips -z 87 87 icon.png --out "$APP_PATH/icon-87.png"
+          # 在 Info.plist 里写入图标引用
+          /usr/libexec/PlistBuddy -c "Add :CFBundleIcons dict" "$APP_PATH/Info.plist" 2>/dev/null || true
+          /usr/libexec/PlistBuddy -c "Add :CFBundleIcons:CFBundlePrimaryIcon dict" "$APP_PATH/Info.plist" 2>/dev/null || true
+          /usr/libexec/PlistBuddy -c "Add :CFBundleIcons:CFBundlePrimaryIcon:CFBundleIconFiles array" "$APP_PATH/Info.plist" 2>/dev/null || true
+          /usr/libexec/PlistBuddy -c "Add :CFBundleIcons:CFBundlePrimaryIcon:CFBundleIconFiles:0 string icon-120.png" "$APP_PATH/Info.plist"
+          /usr/libexec/PlistBuddy -c "Add :CFBundleIcons:CFBundlePrimaryIcon:CFBundleIconFiles:1 string icon-180.png" "$APP_PATH/Info.plist"
+          /usr/libexec/PlistBuddy -c "Add :CFBundleIcons:CFBundlePrimaryIcon:CFBundleIconFiles:2 string icon-80.png" "$APP_PATH/Info.plist"
+          echo "Icon injected."
 
       - name: Package unsigned IPA
         run: |
