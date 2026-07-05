@@ -648,8 +648,8 @@ struct SFTPInputSheet: View {
 // MARK: - 文件导出辅助
 
 struct SFTPFileDocument: FileDocument {
-    static var readableContentTypes: [UTType] = [.data]
-    static var writableContentTypes: [UTType] = [.data]
+    static var readableContentTypes: [UTType] { [.data] }
+    static var writableContentTypes: [UTType] { [.data] }
 
     let fileURL: URL
 
