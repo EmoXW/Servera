@@ -1158,19 +1158,37 @@ struct ServerDetailView: View {
     }
 
     var body: some View {
-        ScrollView(showsIndicators: false) {
-            VStack(alignment: .leading, spacing: 16) {
-                DetailTopBar(
-                    title: device.name,
-                    subtitle: refreshSubtitle,
-                    isRefreshing: isRefreshing,
-                    onRefresh: refreshStatus,
-                    onDiagnostics: { diagnosticsDevice = device },
-                    onEdit: onEdit,
-                    onDelete: onDelete
-                ) {
-                    dismiss()
+        ZStack {
+            // 调试用：测试文本，确认页面是否被渲染
+            VStack {
+                Spacer()
+                HStack {
+                    Spacer()
+                    Text("🔍 DEBUG: ServerDetailView 已加载")
+                        .font(.system(size: 20, weight: .bold))
+                        .foregroundColor(.white)
+                        .padding()
+                        .background(Color.red)
+                        .cornerRadius(10)
+                    Spacer()
                 }
+                Spacer()
+            }
+            .zIndex(999)
+
+            ScrollView(showsIndicators: false) {
+                VStack(alignment: .leading, spacing: 16) {
+                    DetailTopBar(
+                        title: device.name,
+                        subtitle: refreshSubtitle,
+                        isRefreshing: isRefreshing,
+                        onRefresh: refreshStatus,
+                        onDiagnostics: { diagnosticsDevice = device },
+                        onEdit: onEdit,
+                        onDelete: onDelete
+                    ) {
+                        dismiss()
+                    }
 
                 ServerHeroCard(device: device, isVisible: isVisible)
                 TerminalLaunchCard {
@@ -1303,6 +1321,7 @@ struct ServerDetailView: View {
         }) { device in
             ServerTerminalView(device: device)
         }
+        } // ZStack 闭合
     }
 
     private var refreshSubtitle: String {
