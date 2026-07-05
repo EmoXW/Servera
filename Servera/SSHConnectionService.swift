@@ -299,6 +299,31 @@ actor SSHConnectionService {
         }
     }
 
+    /// 打开一个 SFTP 通道，复用已建立的 SSH 连接。
+    /// SFTPService 通过这个方法获取底层 SFTPClient，所有文件操作都在其上执行。
+    func openSFTPChannel(for request: SSHConnectionRequest) async throws -> SFTPClient {
+        let configuration = try makeConfiguration(for: request, connectionTimeout: 12, responseTimeout: 30)
+        let key = liveConnectionKey(for: request)
+        try await waitForCollectionSlot(key)
+        defer { activeCollectionKeys.remove(key) }
+
+        do {
+            let connection = try await liveConnection(for: key, configuration: configuration, networkMode: request.networkMode)
+            return try await connection.openSFTP()
+        } catch {
+            if let staleConnection = liveConnections.removeValue(forKey: key) {
+                await staleConnection.close()
+            }
+
+            do {
+                let connection = try await liveConnection(for: key, configuration: configuration, networkMode: request.networkMode)
+                return try await connection.openSFTP()
+            } catch {
+                throw mapError(error)
+            }
+        }
+    }
+
     private func executeCommand(
         _ command: String,
         using connection: SSHConnection,

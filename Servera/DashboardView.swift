@@ -1145,6 +1145,7 @@ struct ServerDetailView: View {
     @State private var dockerDetailDevice: DashboardDevice?
     @State private var diagnosticsDevice: DashboardDevice?
     @State private var terminalDevice: DashboardDevice?
+    @State private var sftpDevice: DashboardDevice?
     @State private var lastFullRefreshAt: Date?
     @State private var refreshViewState: ServerRefreshViewState = .idle
     @State private var detailModuleOrder: [ServerDetailModule] = []
@@ -1176,6 +1177,10 @@ struct ServerDetailView: View {
                 TerminalLaunchCard {
                     stopAutoRefresh()
                     terminalDevice = device
+                }
+                SFTPLaunchCard {
+                    stopAutoRefresh()
+                    sftpDevice = device
                 }
                 OperationalSnapshotRail(device: device, pulse: livePulse)
 
@@ -1302,6 +1307,13 @@ struct ServerDetailView: View {
             }
         }) { device in
             ServerTerminalView(device: device)
+        }
+        .fullScreenCover(item: $sftpDevice, onDismiss: {
+            if scenePhase == .active {
+                startAutoRefresh(runImmediately: false)
+            }
+        }) { device in
+            SFTPView(device: device)
         }
     }
 
@@ -1990,6 +2002,41 @@ struct TerminalLaunchCard: View {
                     Text("终端")
                         .font(.system(size: 18, weight: .black))
                     Text("进入 SSH 终端会话")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(Color.serveraTextSecondary)
+                }
+
+                Spacer()
+                Image(systemName: "arrow.up.right")
+                    .font(.system(size: 14, weight: .black))
+                    .foregroundStyle(Color.serveraAccentDeep)
+            }
+            .padding(16)
+            .background(.white.opacity(0.72), in: RoundedRectangle(cornerRadius: 26, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 26, style: .continuous).stroke(Color.serveraBorder.opacity(0.7), lineWidth: 1))
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+struct SFTPLaunchCard: View {
+    var onOpen: () -> Void = {}
+
+    var body: some View {
+        Button {
+            onOpen()
+        } label: {
+            HStack(spacing: 14) {
+                Image(systemName: "folder.fill")
+                    .font(.system(size: 21, weight: .black))
+                    .foregroundStyle(.white)
+                    .frame(width: 46, height: 46)
+                    .background(Color.serveraSky, in: RoundedRectangle(cornerRadius: 15, style: .continuous))
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("文件")
+                        .font(.system(size: 18, weight: .black))
+                    Text("SFTP 浏览、上传、下载")
                         .font(.system(size: 12, weight: .semibold))
                         .foregroundStyle(Color.serveraTextSecondary)
                 }
