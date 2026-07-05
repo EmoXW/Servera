@@ -3,7 +3,7 @@ import SwiftData
 import UniformTypeIdentifiers
 
 // MARK: - 设置与备份界面
-// 设置页目前承载备份导入/导出和 Pro 展示。备份工作交给 BackupService，
+// 设置页目前承载备份导入/导出和主题切换。备份工作交给 BackupService，
 // 让加密和文件格式保持可测试。
 
 struct SettingsView: View {
@@ -24,17 +24,27 @@ struct SettingsView: View {
                 HeaderBar(title: "设置")
 
                 Button {
-                    activeSheet = .premium
+                    if let url = URL(string: "https://www.emoxw.cn") {
+                        UIApplication.shared.open(url)
+                    }
                 } label: {
                     ServeraCard(cornerRadius: 32) {
                         VStack(spacing: 12) {
-                            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                .fill(LinearGradient(colors: [.black.opacity(0.82), .serveraAccentDeep], startPoint: .topLeading, endPoint: .bottomTrailing))
-                                .frame(width: 58, height: 58)
-                                .overlay(Image(systemName: "sparkle").font(.title2.weight(.heavy)).foregroundStyle(.white))
-                            Text("获取 Pro")
+                            if let uiImage = UIImage(named: "8ce-avatar.png") {
+                                Image(uiImage: uiImage)
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 58, height: 58)
+                                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                            } else {
+                                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                    .fill(LinearGradient(colors: [.black.opacity(0.82), .serveraAccentDeep], startPoint: .topLeading, endPoint: .bottomTrailing))
+                                    .frame(width: 58, height: 58)
+                                    .overlay(Image(systemName: "person.fill").font(.title2.weight(.heavy)).foregroundStyle(.white))
+                            }
+                            Text("8CE")
                                 .font(.system(size: 26, weight: .black))
-                            Text("解锁服务器 Docker 操作、数据同步和文件编辑。")
+                            Text("访问个人主页，了解更多内容。")
                                 .font(.system(size: 15, weight: .medium))
                                 .foregroundStyle(Color.serveraTextSecondary)
                                 .multilineTextAlignment(.center)
@@ -61,7 +71,7 @@ struct SettingsView: View {
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text("未开启同步时请先备份")
                                         .font(.system(size: 17, weight: .black))
-                                    Text("删除 App 会清除本机设备配置。手动加密备份可免费使用，iCloud 自动同步属于 Pro。")
+                                    Text("删除 App 会清除本机设备配置。建议定期导出加密备份。")
                                         .font(.system(size: 13, weight: .semibold))
                                         .foregroundStyle(Color.serveraTextSecondary)
                                         .lineSpacing(2)
@@ -83,16 +93,13 @@ struct SettingsView: View {
 
                 ServeraCard(cornerRadius: 28) {
                     VStack(spacing: 0) {
-                        SettingsRow(icon: "icloud", title: "iCloud 同步", value: "未开启")
                         Button {
                             activeSheet = .theme
                         } label: {
                             SettingsRow(icon: "circle.lefthalf.filled", title: "设置主题", value: currentTheme.name)
                         }
                         .buttonStyle(.plain)
-                        SettingsRow(icon: "faceid", title: "Face ID 安全验证", value: "已开启")
-                        SettingsRow(icon: "envelope", title: "反馈", value: "发送")
-                        SettingsRow(icon: "star.fill", title: "评价 App", value: "去评分", showDivider: false)
+                        SettingsRow(icon: "faceid", title: "Face ID 安全验证", value: "已开启", showDivider: false)
                     }
                 }
             }
@@ -101,9 +108,6 @@ struct SettingsView: View {
         }
         .sheet(item: $activeSheet) { sheet in
             switch sheet {
-            case .premium:
-                PremiumSheet()
-                    .presentationDetents([.medium])
             case .theme:
                 ThemeSheet()
                     .presentationDetents([.large])
@@ -179,14 +183,12 @@ struct SettingsView: View {
 }
 
 enum SettingsSheet: Identifiable {
-    case premium
     case theme
     case backupExport
     case backupRestore
 
     var id: String {
         switch self {
-        case .premium: "premium"
         case .theme: "theme"
         case .backupExport: "backupExport"
         case .backupRestore: "backupRestore"
@@ -508,54 +510,4 @@ enum BackupMode {
     }
 }
 
-struct PremiumSheet: View {
-    var body: some View {
-        VStack(spacing: 18) {
-            Capsule()
-                .fill(Color.serveraBorder)
-                .frame(width: 42, height: 5)
-                .padding(.top, 8)
 
-            Text("Servera Pro")
-                .font(.system(size: 30, weight: .black))
-
-            Text("更适合多服务器、服务器 Docker 操作、文件预览编辑和数据同步的高级工作流。")
-                .multilineTextAlignment(.center)
-                .foregroundStyle(Color.serveraTextSecondary)
-
-            LazyVGrid(columns: [.init(.flexible()), .init(.flexible())], spacing: 12) {
-                PremiumFeature(title: "无限设备", icon: "infinity")
-                PremiumFeature(title: "服务器 Docker", icon: "shippingbox")
-                PremiumFeature(title: "文件编辑", icon: "doc.text")
-                PremiumFeature(title: "iCloud 同步", icon: "icloud")
-            }
-
-            Button("继续查看") {}
-                .font(.system(size: 17, weight: .heavy))
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 15)
-                .foregroundStyle(.white)
-                .background(Color.serveraAccentDeep, in: Capsule())
-        }
-        .padding(22)
-        .background(ServeraBackground().ignoresSafeArea())
-    }
-}
-
-struct PremiumFeature: View {
-    let title: String
-    let icon: String
-
-    var body: some View {
-        VStack(spacing: 8) {
-            Image(systemName: icon)
-                .font(.system(size: 22, weight: .heavy))
-                .foregroundStyle(Color.serveraAccentDeep)
-            Text(title)
-                .font(.system(size: 14, weight: .bold))
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 15)
-        .background(.white.opacity(0.72), in: RoundedRectangle(cornerRadius: 20, style: .continuous))
-    }
-}
