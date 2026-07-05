@@ -1,0 +1,45 @@
+name: Build IPA
+
+on:
+  workflow_dispatch:        # 手动触发
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: macos-26       # 自带 Xcode 26.x；如不可用退回 macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+
+      - name: List schemes
+        run: xcodebuild -project Servera.xcodeproj -list
+
+      - name: Archive (unsigned)
+        run: |
+          xcodebuild \
+            -project Servera.xcodeproj \
+            -scheme Servera \
+            -sdk iphoneos \
+            -configuration Release \
+            -archivePath build/Servera.xcarchive \
+            -destination 'generic/platform=iOS' \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            archive
+
+      - name: Package unsigned IPA
+        run: |
+          mkdir -p Payload
+          cp -r build/Servera.xcarchive/Products/Applications/Servera.app Payload/
+          zip -r Servera-unsigned.ipa Payload
+          ls -lh Servera-unsigned.ipa
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Servera-unsigned-ipa
+          path: Servera-unsigned.ipa
+          retention-days: 30
