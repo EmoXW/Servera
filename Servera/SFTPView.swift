@@ -24,7 +24,7 @@ struct SFTPView: View {
     @State private var renameText = ""
     @State private var isImportingFile = false
     @State private var isExportingFile = false
-    @State private var exportURL: URL?
+    @State private var exportDocument: SFTPFileDocument?
     @State private var transferProgress: Double?
     @State private var transferLabel: String = ""
 
@@ -99,11 +99,11 @@ struct SFTPView: View {
         }
         .fileExporter(
             isPresented: $isExportingFile,
-            document: exportURL.map { SFTPFileDocument(fileURL: $0) },
+            document: exportDocument,
             contentType: .data,
-            defaultFilename: exportURL?.lastPathComponent ?? "download"
+            defaultFilename: exportDocument?.fileURL.lastPathComponent ?? "download"
         ) { _ in
-            exportURL = nil
+            exportDocument = nil
         }
     }
 
@@ -398,7 +398,7 @@ struct SFTPView: View {
                 }
             )
             transferProgress = nil
-            exportURL = temporaryURL
+            exportDocument = SFTPFileDocument(fileURL: temporaryURL)
             isExportingFile = true
         } catch {
             transferProgress = nil
@@ -557,8 +557,8 @@ struct SFTPEntryRow: View {
         if entry.isDirectory {
             return "文件夹"
         }
-        if let size = entry.sizeBytes {
-            return ServerStatusParser.byteText(Int64(size))
+        if let size = entry.sizeBytes, let intSize = Int64(exactly: size) {
+            return ServerStatusParser.byteText(intSize)
         }
         return "文件"
     }
