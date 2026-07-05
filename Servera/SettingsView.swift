@@ -9,6 +9,7 @@ import UniformTypeIdentifiers
 struct SettingsView: View {
     @Environment(\.modelContext) private var modelContext
     @AppStorage("servera.theme.id") private var selectedThemeID = ServeraThemePreset.fallback.id
+    @AppStorage("servera.biometricAuth.enabled") private var isBiometricAuthEnabled = false
     @Query(sort: [SortDescriptor(\ManagedDeviceRecord.orderIndex), SortDescriptor(\ManagedDeviceRecord.createdAt)])
     private var deviceRecords: [ManagedDeviceRecord]
     @State private var activeSheet: SettingsSheet?
@@ -17,6 +18,7 @@ struct SettingsView: View {
     @State private var isImportingBackup = false
     @State private var pendingImportPassword = ""
     @State private var resultMessage: String?
+    @State private var biometricAvailability: BiometricAvailability = .notAvailable
 
     var body: some View {
         ScrollView(showsIndicators: false) {
@@ -99,12 +101,33 @@ struct SettingsView: View {
                             SettingsRow(icon: "circle.lefthalf.filled", title: "设置主题", value: currentTheme.name)
                         }
                         .buttonStyle(.plain)
-                        SettingsRow(icon: "faceid", title: "Face ID 安全验证", value: "已开启", showDivider: false)
+                        if biometricAvailability.isAvailable {
+                            Toggle(isOn: Binding(
+                                get: { isBiometricAuthEnabled },
+                                set: { newValue in
+                                    Task { await toggleBiometricAuth(newValue) }
+                                }
+                            )) {
+                                HStack(spacing: 14) {
+                                    Image(systemName: biometricAvailability.type == .faceID ? "faceid" : "touchid")
+                                        .frame(width: 26)
+                                    Text(biometricAvailability.type == .faceID ? "Face ID 安全验证" : "Touch ID 安全验证")
+                                        .font(.system(size: 17, weight: .bold))
+                                }
+                            }
+                            .tint(Color.serveraAccentDeep)
+                            .padding(.vertical, 15)
+                        }
                     }
                 }
             }
             .padding(.horizontal, 20)
             .padding(.top, 18)
+        }
+        .onAppear {
+            Task {
+                biometricAvailability = await BiometricAuthService.shared.availability()
+            }
         }
         .sheet(item: $activeSheet) { sheet in
             switch sheet {
@@ -152,32 +175,85 @@ struct SettingsView: View {
         ServeraThemePreset.preset(for: selectedThemeID)
     }
 
+    private func toggleBiometricAuth(_ newValue: Bool) async {
+        if newValue {
+            do {
+                let success = try await BiometricAuthService.shared.authenticate(
+                    reason: "开启生物识别验证"
+                )
+                if success {
+                    isBiometricAuthEnabled = true
+                }
+            } catch {
+                isBiometricAuthEnabled = false
+                resultMessage = error.localizedDescription
+            }
+        } else {
+            isBiometricAuthEnabled = false
+        }
+    }
+
     private func prepareBackupExport(password: String) {
-        // 真正的编码/加密由备份服务完成；设置页只准备 SwiftUI 导出需要的文档对象。
-        do {
-            exportDocument = BackupFileDocument(data: try BackupService.exportData(from: deviceRecords, password: password))
-            activeSheet = nil
-            isExportingBackup = true
-        } catch {
-            resultMessage = error.localizedDescription
+        Task {
+            if isBiometricAuthEnabled {
+                do {
+                    let success = try await BiometricAuthService.shared.authenticate(
+                        reason: "导出备份前需要验证身份"
+                    )
+                    guard success else { return }
+                } catch {
+                    resultMessage = error.localizedDescription
+                    return
+                }
+            }
+            await MainActor.run {
+                do {
+                    exportDocument = BackupFileDocument(data: try BackupService.exportData(from: deviceRecords, password: password))
+                    activeSheet = nil
+                    isExportingBackup = true
+                } catch {
+                    resultMessage = error.localizedDescription
+                }
+            }
         }
     }
 
     private func handleBackupImport(_ result: Result<URL, Error>) {
-        // 文件可能来自 iCloud/文件 App，读取加密备份字节前先申请 security-scoped 访问。
-        do {
-            let url = try result.get()
-            let didAccess = url.startAccessingSecurityScopedResource()
-            defer {
-                if didAccess { url.stopAccessingSecurityScopedResource() }
+        Task {
+            if isBiometricAuthEnabled {
+                do {
+                    let success = try await BiometricAuthService.shared.authenticate(
+                        reason: "恢复备份前需要验证身份"
+                    )
+                    guard success else {
+                        isImportingBackup = false
+                        return
+                    }
+                } catch {
+                    await MainActor.run {
+                        resultMessage = error.localizedDescription
+                        isImportingBackup = false
+                    }
+                    return
+                }
             }
-            let data = try Data(contentsOf: url)
-            let restoredCount = try BackupService.importData(data, password: pendingImportPassword, into: modelContext, existingRecords: deviceRecords)
-            pendingImportPassword = ""
-            resultMessage = "已恢复 \(restoredCount) 台设备的基础配置。密码、私钥和 DSM Token 需要重新验证。"
-        } catch {
-            pendingImportPassword = ""
-            resultMessage = error.localizedDescription
+            await MainActor.run {
+                do {
+                    let url = try result.get()
+                    let didAccess = url.startAccessingSecurityScopedResource()
+                    defer {
+                        if didAccess { url.stopAccessingSecurityScopedResource() }
+                    }
+                    let data = try Data(contentsOf: url)
+                    let restoredCount = try BackupService.importData(data, password: pendingImportPassword, into: modelContext, existingRecords: deviceRecords)
+                    pendingImportPassword = ""
+                    resultMessage = "已恢复 \(restoredCount) 台设备的基础配置。密码、私钥和 DSM Token 需要重新验证。"
+                } catch {
+                    pendingImportPassword = ""
+                    resultMessage = error.localizedDescription
+                }
+                isImportingBackup = false
+            }
         }
     }
 }

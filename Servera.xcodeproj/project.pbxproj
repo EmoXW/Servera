@@ -30,6 +30,7 @@
 		01A000000000000000000117 /* NASFileBrowserView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A000000000000000000216 /* NASFileBrowserView.swift */; };
 		01A000000000000000000118 /* SynologyDockerService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A000000000000000000217 /* SynologyDockerService.swift */; };
 		01A000000000000000000119 /* SynologyControlPanelService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A000000000000000000218 /* SynologyControlPanelService.swift */; };
+		01A00000000000000000011C /* BiometricAuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A00000000000000000021C /* BiometricAuthService.swift */; };
 		01B000000000000000000101 /* ServerStatusParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01B000000000000000000201 /* ServerStatusParserTests.swift */; };
 		01B000000000000000000103 /* ServerTerminalTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01B000000000000000000203 /* ServerTerminalTests.swift */; };
 		01B000000000000000000104 /* SynologyClientParsingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01B000000000000000000204 /* SynologyClientParsingTests.swift */; };
@@ -70,6 +71,7 @@
 		01A000000000000000000216 /* NASFileBrowserView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NASFileBrowserView.swift; sourceTree = "<group>"; };
 		01A000000000000000000217 /* SynologyDockerService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SynologyDockerService.swift; sourceTree = "<group>"; };
 		01A000000000000000000218 /* SynologyControlPanelService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SynologyControlPanelService.swift; sourceTree = "<group>"; };
+		01A00000000000000000021C /* BiometricAuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiometricAuthService.swift; sourceTree = "<group>"; };
 		01B000000000000000000200 /* ServeraTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ServeraTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		01B000000000000000000201 /* ServerStatusParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerStatusParserTests.swift; sourceTree = "<group>"; };
 		01B000000000000000000203 /* ServerTerminalTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerTerminalTests.swift; sourceTree = "<group>"; };
@@ -129,6 +131,7 @@
 				01A000000000000000000216 /* NASFileBrowserView.swift */,
 				01A000000000000000000217 /* SynologyDockerService.swift */,
 				01A000000000000000000218 /* SynologyControlPanelService.swift */,
+				01A00000000000000000021C /* BiometricAuthService.swift */,
 				01A000000000000000000209 /* Assets.xcassets */,
 			);
 			path = Servera;
@@ -282,6 +285,7 @@
 				01A000000000000000000117 /* NASFileBrowserView.swift in Sources */,
 				01A000000000000000000118 /* SynologyDockerService.swift in Sources */,
 				01A000000000000000000119 /* SynologyControlPanelService.swift in Sources */,
+				01A00000000000000000011C /* BiometricAuthService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -434,6 +438,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Servera;
+				INFOPLIST_KEY_NSFaceIDUsageDescription = "使用 Face ID 解锁 App，保护你的服务器凭据安全";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -468,6 +473,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Servera;
+				INFOPLIST_KEY_NSFaceIDUsageDescription = "使用 Face ID 解锁 App，保护你的服务器凭据安全";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

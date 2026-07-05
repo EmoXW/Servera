@@ -27,8 +27,10 @@ enum AppTab: String, CaseIterable, Identifiable {
 
 struct RootView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.scenePhase) private var scenePhase
     @AppStorage("servera.theme.id") private var selectedThemeID = ServeraThemePreset.fallback.id
     @AppStorage("servera.appearance.mode") private var appearanceModeRawValue = ServeraAppearanceMode.system.rawValue
+    @AppStorage("servera.biometricAuth.enabled") private var isBiometricAuthEnabled = false
     @Query(sort: [SortDescriptor(\ManagedDeviceRecord.orderIndex), SortDescriptor(\ManagedDeviceRecord.createdAt)])
     private var deviceRecords: [ManagedDeviceRecord]
     @State private var selectedTab: AppTab = .dashboard
@@ -43,6 +45,8 @@ struct RootView: View {
     @State private var actionError: String?
     @State private var preferredDeviceKind: ManagedDeviceKind = .server
     @State private var addDeviceRequestID = 0
+    @State private var isBiometricUnlocked = false
+    @State private var biometricAuthError: String?
     @Namespace private var tabNamespace
 
     private var visibleDevices: [DashboardDevice] {
@@ -72,87 +76,89 @@ struct RootView: View {
     }
 
     var body: some View {
-        NavigationStack(path: $navigationPath) {
-            ZStack(alignment: .bottom) {
-                ServeraBackground()
-                    .ignoresSafeArea()
+        ZStack {
+            NavigationStack(path: $navigationPath) {
+                ZStack(alignment: .bottom) {
+                    ServeraBackground()
+                        .ignoresSafeArea()
 
-                Group {
-                    switch selectedTab {
-                    case .dashboard:
-                        DashboardView(
-                            devices: serverDevices,
-                            autoRefreshEnabled: navigationPath.isEmpty,
-                            onReorder: persistOrder,
-                            refreshingDeviceIDs: refreshingDeviceIDs,
-                            onSelect: { device in
+                    Group {
+                        switch selectedTab {
+                        case .dashboard:
+                            DashboardView(
+                                devices: serverDevices,
+                                autoRefreshEnabled: navigationPath.isEmpty,
+                                onReorder: persistOrder,
+                                refreshingDeviceIDs: refreshingDeviceIDs,
+                                onSelect: { device in
+                                    navigationPath.append(.device(device))
+                                },
+                                onRefresh: refreshServer,
+                                onRefreshAll: refreshAllServers,
+                                onAutoRefresh: { device in
+                                    refreshServerLiveMetrics(device)
+                                },
+                                onAddServer: openAddServer,
+                                onEdit: { device in
+                                    editingServer = ServerEditSelection(id: device.id)
+                                },
+                                onDelete: { device in
+                                    pendingDeleteDevice = device
+                                }
+                            )
+                        case .nas:
+                            NASView(
+                                devices: visibleDevices,
+                                refreshingDeviceIDs: refreshingDeviceIDs,
+                                onRefresh: refreshNAS,
+                                onEdit: { device in
+                                    editingNAS = NASEditSelection(id: device.id)
+                                },
+                                onDelete: { device in
+                                    pendingDeleteDevice = device
+                                },
+                                onOpenFiles: { device, volume in
+                                    openNASFiles(device: device, volume: volume)
+                                },
+                                onOpenControlPanel: { device, module in
+                                    openNASControlPanel(device: device, module: module)
+                                },
+                                onOpenDockerContainer: { device, container in
+                                    openNASDockerContainer(device: device, container: container)
+                                }
+                            ) { device in
                                 navigationPath.append(.device(device))
-                            },
-                            onRefresh: refreshServer,
-                            onRefreshAll: refreshAllServers,
-                            onAutoRefresh: { device in
-                                refreshServerLiveMetrics(device)
-                            },
-                            onAddServer: openAddServer,
-                            onEdit: { device in
-                                editingServer = ServerEditSelection(id: device.id)
-                            },
-                            onDelete: { device in
-                                pendingDeleteDevice = device
+                            } onAddNAS: {
+                                openAddNAS()
                             }
-                        )
-                    case .nas:
-                        NASView(
-                            devices: visibleDevices,
-                            refreshingDeviceIDs: refreshingDeviceIDs,
-                            onRefresh: refreshNAS,
-                            onEdit: { device in
-                                editingNAS = NASEditSelection(id: device.id)
-                            },
-                            onDelete: { device in
-                                pendingDeleteDevice = device
-                            },
-                            onOpenFiles: { device, volume in
-                                openNASFiles(device: device, volume: volume)
-                            },
-                            onOpenControlPanel: { device, module in
-                                openNASControlPanel(device: device, module: module)
-                            },
-                            onOpenDockerContainer: { device, container in
-                                openNASDockerContainer(device: device, container: container)
+                        case .devices:
+                            DevicesView(preferredKind: preferredDeviceKind, requestID: addDeviceRequestID) { addedDevice in
+                                handleDeviceAdded(addedDevice)
                             }
-                        ) { device in
-                            navigationPath.append(.device(device))
-                        } onAddNAS: {
-                            openAddNAS()
+                        case .docker:
+                            DockerView(devices: visibleDevices) { device in
+                                navigationPath.append(.serverDocker(device))
+                            }
+                        case .settings:
+                            SettingsView()
                         }
-                    case .devices:
-                        DevicesView(preferredKind: preferredDeviceKind, requestID: addDeviceRequestID) { addedDevice in
-                            handleDeviceAdded(addedDevice)
-                        }
-                    case .docker:
-                        DockerView(devices: visibleDevices) { device in
-                            navigationPath.append(.serverDocker(device))
-                        }
-                    case .settings:
-                        SettingsView()
                     }
-                }
-                .safeAreaPadding(.bottom, navigationPath.isEmpty ? 92 : 0)
+                    .safeAreaPadding(.bottom, navigationPath.isEmpty ? 92 : 0)
 
-                if navigationPath.isEmpty {
-                    TopSafeAreaMist()
-                        .zIndex(1)
+                    if navigationPath.isEmpty {
+                        TopSafeAreaMist()
+                            .zIndex(1)
 
-                    BottomSafeAreaMist()
-                        .allowsHitTesting(false)
-                        .zIndex(1)
+                        BottomSafeAreaMist()
+                            .allowsHitTesting(false)
+                            .zIndex(1)
 
-                    ServeraTabBar(selectedTab: $selectedTab, namespace: tabNamespace)
-                        .padding(.horizontal, 18)
-                        .padding(.bottom, 6)
-                        .transition(.move(edge: .bottom).combined(with: .opacity))
-                        .zIndex(2)
+                        ServeraTabBar(selectedTab: $selectedTab, namespace: tabNamespace)
+                            .padding(.horizontal, 18)
+                            .padding(.bottom, 6)
+                            .transition(.move(edge: .bottom).combined(with: .opacity))
+                            .zIndex(2)
+                    }
                 }
             }
             .navigationDestination(for: RootRoute.self) { route in
@@ -217,6 +223,12 @@ struct RootView: View {
                         .toolbar(.hidden, for: .navigationBar)
                 }
             }
+
+            if isBiometricAuthEnabled && !isBiometricUnlocked {
+                biometricLockView
+                    .transition(.opacity)
+                    .zIndex(100)
+            }
         }
         .environment(\.serveraTheme, currentTheme)
         .sheet(item: $editingServer) { selection in
@@ -268,6 +280,91 @@ struct RootView: View {
             Text("删除后会移除本机配置和 Keychain 凭据。")
         }
         .preferredColorScheme(preferredColorScheme)
+        .onChange(of: scenePhase) { _, newValue in
+            if newValue == .active {
+                Task { await handleScenePhaseActive() }
+            } else if newValue == .background {
+                isBiometricUnlocked = false
+            }
+        }
+        .task {
+            if isBiometricAuthEnabled {
+                isBiometricUnlocked = false
+                await handleBiometricUnlock()
+            } else {
+                isBiometricUnlocked = true
+            }
+        }
+    }
+
+    private var biometricLockView: some View {
+        ZStack {
+            ServeraBackground()
+                .ignoresSafeArea()
+            
+            VStack(spacing: 20) {
+                Image(systemName: "lock.fill")
+                    .font(.system(size: 44, weight: .bold))
+                    .foregroundStyle(Color.serveraAccentDeep)
+                    .frame(width: 88, height: 88)
+                    .background(Color.serveraTintSoft, in: RoundedRectangle(cornerRadius: 28, style: .continuous))
+                
+                Text("Servera 已锁定")
+                    .font(.system(size: 22, weight: .black))
+                
+                Text("使用面容 ID 或触控 ID 解锁")
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundStyle(Color.serveraTextSecondary)
+                    .multilineTextAlignment(.center)
+                
+                Button {
+                    Task { await handleBiometricUnlock() }
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "faceid")
+                            .font(.system(size: 17, weight: .bold))
+                        Text("点击解锁")
+                            .font(.system(size: 16, weight: .bold))
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 16)
+                    .foregroundStyle(.white)
+                    .background(Color.serveraAccentDeep, in: Capsule())
+                }
+                .buttonStyle(.plain)
+                .padding(.top, 8)
+                
+                if let error = biometricAuthError {
+                    Text(error)
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundStyle(.red)
+                        .multilineTextAlignment(.center)
+                        .padding(.top, 4)
+                }
+            }
+            .padding(.horizontal, 40)
+        }
+    }
+
+    private func handleScenePhaseActive() async {
+        guard isBiometricAuthEnabled else { return }
+        if !isBiometricUnlocked {
+            await handleBiometricUnlock()
+        }
+    }
+
+    private func handleBiometricUnlock() async {
+        biometricAuthError = nil
+        do {
+            let success = try await BiometricAuthService.shared.authenticate(
+                reason: "解锁 Servera"
+            )
+            if success {
+                isBiometricUnlocked = true
+            }
+        } catch {
+            biometricAuthError = error.localizedDescription
+        }
     }
 
     private var deleteTitle: String {
