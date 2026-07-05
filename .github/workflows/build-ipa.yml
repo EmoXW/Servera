@@ -46,6 +46,16 @@ jobs:
           /usr/libexec/PlistBuddy -c "Add :CFBundleIcons:CFBundlePrimaryIcon:CFBundleIconFiles:2 string icon-80.png" "$APP_PATH/Info.plist"
           echo "Icon injected."
 
+      - name: Inject custom resources
+        run: |
+          APP_PATH="build/Servera.xcarchive/Products/Applications/Servera.app"
+          if [ -f Servera/8ce-avatar.png ]; then
+            cp Servera/8ce-avatar.png "$APP_PATH/"
+            echo "8ce-avatar.png injected."
+          else
+            echo "Warning: Servera/8ce-avatar.png not found."
+          fi
+
       - name: Package unsigned IPA
         run: |
           mkdir -p Payload
