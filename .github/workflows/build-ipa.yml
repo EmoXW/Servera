@@ -1,0 +1,70 @@
+name: Build IPA
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+
+      - name: Archive (unsigned)
+        run: |
+          xcodebuild \
+            -project Servera.xcodeproj \
+            -scheme Servera \
+            -sdk iphoneos \
+            -configuration Release \
+            -archivePath build/Servera.xcarchive \
+            -destination 'generic/platform=iOS' \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            archive
+
+      - name: Inject app icon
+        run: |
+          APP_PATH="build/Servera.xcarchive/Products/Applications/Servera.app"
+          # 生成 iOS 需要的图标尺寸
+          sips -z 120 120 icon.png --out "$APP_PATH/icon-120.png"
+          sips -z 180 180 icon.png --out "$APP_PATH/icon-180.png"
+          sips -z 80 80 icon.png --out "$APP_PATH/icon-80.png"
+          sips -z 40 40 icon.png --out "$APP_PATH/icon-40.png"
+          sips -z 87 87 icon.png --out "$APP_PATH/icon-87.png"
+          # 在 Info.plist 里写入图标引用
+          /usr/libexec/PlistBuddy -c "Add :CFBundleIcons dict" "$APP_PATH/Info.plist" 2>/dev/null || true
+          /usr/libexec/PlistBuddy -c "Add :CFBundleIcons:CFBundlePrimaryIcon dict" "$APP_PATH/Info.plist" 2>/dev/null || true
+          /usr/libexec/PlistBuddy -c "Add :CFBundleIcons:CFBundlePrimaryIcon:CFBundleIconFiles array" "$APP_PATH/Info.plist" 2>/dev/null || true
+          /usr/libexec/PlistBuddy -c "Add :CFBundleIcons:CFBundlePrimaryIcon:CFBundleIconFiles:0 string icon-120.png" "$APP_PATH/Info.plist"
+          /usr/libexec/PlistBuddy -c "Add :CFBundleIcons:CFBundlePrimaryIcon:CFBundleIconFiles:1 string icon-180.png" "$APP_PATH/Info.plist"
+          /usr/libexec/PlistBuddy -c "Add :CFBundleIcons:CFBundlePrimaryIcon:CFBundleIconFiles:2 string icon-80.png" "$APP_PATH/Info.plist"
+          echo "Icon injected."
+
+      - name: Inject custom resources
+        run: |
+          APP_PATH="build/Servera.xcarchive/Products/Applications/Servera.app"
+          if [ -f Servera/8ce-avatar.png ]; then
+            cp Servera/8ce-avatar.png "$APP_PATH/"
+            echo "8ce-avatar.png injected."
+          else
+            echo "Warning: Servera/8ce-avatar.png not found."
+          fi
+
+      - name: Package unsigned IPA
+        run: |
+          mkdir -p Payload
+          cp -r build/Servera.xcarchive/Products/Applications/Servera.app Payload/
+          zip -r Servera-unsigned.ipa Payload
+          ls -lh Servera-unsigned.ipa
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Servera-unsigned-ipa
+          path: Servera-unsigned.ipa
+          retention-days: 30
